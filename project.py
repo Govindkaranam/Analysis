@@ -5,7 +5,14 @@ import requests
 import git
 import torch
 from nbformat import read, write, validate
-from transformers import GPT2LMHeadModel, GPT2Tokenizer,GPTSw3Tokenizer
+from transformers import GPT2LMHeadModel, GPT2Tokenizer
+from flask import Flask, request, jsonify
+
+export:
+PATH="C:\Program Files\Git\usr\bin   "
+os.environ['GIT_PYTHON_GIT_EXECUTABLE'] = 'C:\Program Files\Git'
+
+app = Flask(__name__)
 
 # Fetch user repositories from GitHub
 def fetch_user_repositories(github_url):
@@ -90,8 +97,6 @@ def preprocess_jupyter_notebook(file_path):
         write(notebook, file, version=4)
 
 
-
-
 # Preprocess Python file
 def preprocess_python_file(file_path):
     # Read the Python file
@@ -104,6 +109,7 @@ def preprocess_python_file(file_path):
     # Save the preprocessed Python file
     with open(file_path, "w") as file:
         file.writelines(lines)
+
 
 # Assess technical complexity using GPT
 def assess_technical_complexity(code):
@@ -122,6 +128,7 @@ def assess_technical_complexity(code):
     complexity_score = compute_complexity_score(generated_text)
 
     return complexity_score
+
 
 # Compute complexity score using LangChain or other techniques
 def compute_complexity_score(text):
@@ -151,6 +158,7 @@ def identify_most_complex_repository(repositories):
             most_complex_repository = repository
 
     return most_complex_repository
+
 
 # Get the code from the repository
 def get_repository_code(repository):
@@ -205,19 +213,28 @@ def generate_justification(repository):
     return justification
 
 
+@app.route('/analyze', methods=['POST'])
+def analyze_repositories():
+    data = request.get_json()
+    github_url = data.get('github_url')
 
-
-# Main function
-def URL():
-    user_url = input("Enter GitHub user URL: ")
-    repositories = fetch_user_repositories(user_url)
+    repositories = fetch_user_repositories(github_url)
     most_complex_repository = identify_most_complex_repository(repositories)
     justification = generate_justification(most_complex_repository)
 
-    print("Most Complex Repository:", most_complex_repository)
-    print("Justification:", justification)
+    response = {
+        "most_complex_repository": most_complex_repository,
+        "justification": justification
+    }
 
-# Run the main function
-if __name__ == "__main__":
-    URL()
+    return jsonify(response)
 
+
+@app.route('/')
+def home():
+    return render_template('index.html')
+
+
+if __name__ == '__main__':
+    os.environ['GIT_PYTHON_REFRESH'] = 'quiet'
+    app.run(debug=True)
