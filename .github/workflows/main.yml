@@ -1,0 +1,22 @@
+flask_app:
+  debug: true
+
+github_api:
+  base_url: "https://api.github.com"
+
+gpt_model:
+  name: "gpt2"
+  pretrained: true
+
+tokenizer:
+  name: "gpt2"
+
+routes:
+  - url: "/"
+    endpoint: "index"
+    template: "index.html"
+    methods: ["GET"]
+
+  - url: "/result"
+    endpoint: "result"
+    methods: ["POST"]
